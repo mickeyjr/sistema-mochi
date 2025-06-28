@@ -11,16 +11,13 @@ export class SalesController {
    async PostSaveSales(@Body() product: any){
     const newProducts= await this.salesService.GetInfoProduct(product);
     const exitsStock = await this.salesService.SubtractStockAndSaveSale(newProducts);
-    if(exitsStock.validator ){
-        const recalculatedProduct = await this.salesService.RecalculateSale(newProducts);
-        //falta crear el body para la tabla de detalleVenta y hacer el proceso de guardado.
-        return this.salesService.SaveSales(recalculatedProduct, exitsStock);
-    }else {
+    if(!exitsStock.validator )
         throw new HttpException({
-            status: 500,
-            error: 'Existe un error en el servidor.',
+            status: 400,
+            error: 'Existe un error con la existencia del stock',
             message: 'Comunicate con sistemas.',
-          }, 400);
-    }
+        }, 400);
+    const recalculatedProduct = await this.salesService.RecalculateSale(newProducts, product);
+    return this.salesService.SaveSales(recalculatedProduct, exitsStock);
    }
 }

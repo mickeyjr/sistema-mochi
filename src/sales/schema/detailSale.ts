@@ -5,7 +5,16 @@ export const SaveSaleDetailsSchema = new Schema({
     Ganancia:Number,
     Fecha:String,
     products: Array,
-    Lugar: String,
+    SalesLocation: String,
+    Total: Number,
+    TotalWithoutIVA: Number,
+    PaymentType:String,
+    CustomerChange: Number,
+    IVA: Number,
+    PaymentReceived: Number,
+    DateSales: String,
+    IdCashRegister: String,
+    IdStore: String,
 }, {
   collection: 'SaveSaleDetails' 
 });

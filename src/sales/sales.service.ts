@@ -1,8 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
-import { formatFecha } from 'src/function/date';
-import { SaveSaleDetailsSchema } from './schema/detailSale';
+import { formatFecha, generateBodySales } from 'src/function/generalFuntion';
 
 @Injectable()
 export class SalesService {
@@ -26,7 +25,24 @@ export class SalesService {
             await session.session.commitTransaction();
             session.session.endSession();
 
-            return { response: "Venta registrada correctamente", status: 200};
+            return { 
+                response: "Venta registrada correctamente", 
+                status: 200,
+                detalle:{
+                    PaymentType: products.PaymentType,
+                    PaymentReceived:products.PaymentReceived,
+                    CustomerChange: products.CustomerChange,
+                    IVA: products.IVA,
+                    Total: products.Total,
+                    TotalWithoutIVA: products.TotalWithoutIVA,
+                    DateSales: products.DateSales,
+                    IdVenta: products.IdVenta,
+                    IdStore: products.IdStore,
+                    IdCashRegister: products.IdCashRegister,
+                    IdEmployee: products.IdEmployee,
+                }
+            };
+
         } catch (error) {
             await session.session.abortTransaction();
             session.session.endSession();
@@ -41,14 +57,10 @@ export class SalesService {
 
     async SaveSaleDetails(products: any, session: { validator?: boolean; session: any; }) {
         try {
-            const newDetailsProducts = {
-                "IdVenta": products.IdVenta,
-                "products": products.products,
-                "Ganancia": products.products.reduce((total, item) => total + item.Ganancia, 0),
-                "Fecha": products.products[0].Fecha,
-                "Lugar": products.products[0].Lugar,
-            };
+            let newDetailsProducts = await generateBodySales(products, 0, 3, 0);
+            
             const res = await this.SaveSaleDetailsModel.insertOne(newDetailsProducts, session.session);
+
         } catch (error) {
             await session.session.abortTransaction();
             session.session.endSession();
@@ -60,51 +72,73 @@ export class SalesService {
         }
     }
 
-    async RecalculateSale(products: any) {
+    async totalProducts(products :any){
+
+        let totalSales = 0;
+        let totalPrice = 0; 
+
+        products.forEach(product => {
+            totalPrice = product.precio * product.numeroDePiezas
+            totalSales += totalPrice;
+        });
+
+        return totalSales;
+    }
+
+    async RecalculateSale(products: any, SalesInformation: any) {
         try {
             const idVenta = await this.generateUniqueSaleId();
-            const sale = products.map(product => ({
-                "IdVenta": idVenta,
-                "Nombre": product.nombre,
-                "Precio": product.precio,
-                "NumeroDePiezas": product.numeroDePiezas,
-                "Ganancia": product.ganancia * product.numeroDePiezas,
-                "Fecha": product.fecha,
-                "Lugar": product.lugar,
-                "Imagen": product.imagen
-            }))
-            let saleSave = {
-                "IdVenta": idVenta,
-                products: sale
+
+            let sale = await generateBodySales(products, idVenta, 1, 0);
+
+            let totalSales = await this.totalProducts(products);
+            
+            if(totalSales > SalesInformation.PaymentReceived){
+                throw new HttpException({
+                    status: 400,
+                    error: 'No puedes adicionar un monton menor al coobro.',
+                }, 400);
             }
+
+            let saleSave = await generateBodySales(SalesInformation, idVenta, 2, totalSales);
+            sale.forEach(sale => {
+                saleSave.products.push(sale);  
+            });
+
             return saleSave;
+
         } catch (error) {
+
             throw new HttpException({
                 status: 500,
                 error: 'Existe un error en el servidor.',
-                message: error,
+                message: error.message.errorResponse.errmsg,
               }, 500);
+
         }
     }
 
-
     async generateUniqueSaleId() {
+
         let unique = false;
         let saleId = 0;
 
         while (!unique) {
+
             saleId = Math.floor(1000000000 + Math.random() * 9000000000);
 
             const exists = await this.SaveSale.exists({ IdVenta: saleId });
             if (!exists) {
                 unique = true;
             }
+
         }
 
         return saleId;
     }
 
     async SubtractStockAndSaveSale(products: any) {
+
         const session = await this.connection.startSession();
         session.startTransaction();
 
@@ -147,6 +181,7 @@ export class SalesService {
 
             return { validator: true, session };
         } catch (error) {
+
             await session.abortTransaction();
             session.endSession();
             throw new HttpException({
@@ -154,32 +189,39 @@ export class SalesService {
                 error: 'Existe un error en el servidor.',
                 message: error,
               }, 500);
-            //throw error;
+
         }
     }
 
-    async GetInfoProduct(products: any[]) {
+    async GetInfoProduct(sale: any) {
         try {
-            const productosConInfo = await Promise.all(products.map(async (product) => {
+
+            const productosConInfo = await Promise.all(sale.products.map(async (product) => {
+            
                 const info = await this.productoModel.findOne(
                     { idProduct: product.idProduct },
                     { PrecioPublico: 1, Ganancia: 1, _id: 0 }
                 ).exec();
+                
                 return {
                     ...product,
                     fecha: formatFecha(),
                     precio: info?.PrecioPublico || 0,
                     ganancia: info?._doc?.Ganancia || 0
                 };
+
             }));
 
             return productosConInfo;
+
         } catch (error) {
+
             throw new HttpException({
                 status: 404,
                 error: 'Ocurrio algo en el sistema',
                 message:error,
             }, 404);
+            
         }
     }
 
