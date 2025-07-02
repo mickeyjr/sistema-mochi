@@ -16,10 +16,18 @@ export class ProductosController {
     return this.productosService.getProductsByName(name);
   }
 
+  @Post('/byId')
+  async getProdcutsById(@Body() id: any){
+    return this.productosService.getProductsById(id);
+  }
+
   @Post()
   @UsePipes(new ValidationPipe)
+  //Adicionar la info en la nueva tabla de stock
   async crearProducto(@Body() productoDTO: CrearProductoDTO) {
     return this.productosService.crearProducto(productoDTO);
   }
+
+  //1.- servicio para actualizar Stock o para actualizar datos de un producto.
 
 }

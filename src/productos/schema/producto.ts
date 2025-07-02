@@ -9,13 +9,14 @@ export const ProductosSchema = new Schema({
   PrecioUnitario: Number,
   PrecioPublico: Number,
   Contenido: Number,
-  stock: Number,
+  IdEmployee: String,
   EstadoDelProducto: String,
   InStock: Boolean,
   GananciaPorUnidad: Number,
   Fecha: String,
   Lugar: String,
   Imagen: String,
+  IdProduct:String
 }, {
   collection: 'Productos' 
 });

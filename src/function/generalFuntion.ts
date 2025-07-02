@@ -63,3 +63,8 @@ export function generateBodySales(body,idVenta, type: number, totalSales ){
 
         return sale; 
     }
+export function generarIdPorFecha() {
+  const fecha = new Date().toISOString().replace(/[-:TZ.]/g, '');
+  const random = Math.floor(Math.random() * 10000); 
+  return `${fecha}${random}`;
+}

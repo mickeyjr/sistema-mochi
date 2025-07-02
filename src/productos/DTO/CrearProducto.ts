@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CrearProductoDTO {
   @IsNotEmpty()
@@ -50,11 +50,11 @@ export class CrearProductoDTO {
   GananciaPorUnidad: number;
 
   @IsString()
-  @IsNotEmpty()
+  //@IsNotEmpty()
   Fecha: string;
 
   @IsString()
-  @IsNotEmpty()
+  //@IsNotEmpty()
   Lugar: string;
 
   @IsString()
