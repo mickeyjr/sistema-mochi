@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, Param, Post, Query } from '@nestjs/common';
 import { SalesService } from './sales.service';
 
 @Controller('sales')
@@ -6,6 +6,16 @@ export class SalesController {
 
     constructor(private readonly salesService: SalesService) {}
     
+
+   @Get('/getSales/:dateInit/:dateEnd')
+   async GetSalesByWeek(@Param() datesOfSearch ){
+    return await this.salesService.GetSalesByWeek(datesOfSearch);
+   }
+
+    @Get('getSaleById/:idSale')
+    async getSalesById(@Param() params){
+        return await this.salesService.getSalesById(params.idSale);
+    }
 
    @Post('/save')
    async PostSaveSales(@Body() product: any){

@@ -12,7 +12,8 @@ export const SaveSaleSchema = new Schema({
   DateSales: String,
   SalesLocation: String,
   IdStore: String,
-  IdCashRegister: String
+  IdCashRegister: String,
+  DateSave: Date
 }, {
   collection: 'SaveSale' 
 });

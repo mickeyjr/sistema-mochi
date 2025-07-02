@@ -20,7 +20,7 @@ export function generateBodySales(body,idVenta, type: number, totalSales ){
                 "Precio": product.precio,
                 "NumeroDePiezas": product.numeroDePiezas,
                 "Ganancia": product.ganancia * product.numeroDePiezas,
-                "Fecha": product.fecha,
+                //"Fecha": product.fecha,
                 "Imagen": product.imagen,
             }))
         }else if (type == 2){
@@ -32,6 +32,7 @@ export function generateBodySales(body,idVenta, type: number, totalSales ){
                 "PaymentType":body.PaymentType,
                 "CustomerChange": body.PaymentReceived - totalSales,
                 "DateSales": formatFecha(),
+                "DateSave":  new Date(),
                 "SalesLocation": body.SalesLocation,
                 "IVA": totalSales * .16,
                 "IdStore": body.IdStore,
@@ -55,6 +56,7 @@ export function generateBodySales(body,idVenta, type: number, totalSales ){
                 "products": body.products,
                 "Ganancia": body.products.reduce((total, item) => total + item.Ganancia, 0),
                 "Fecha": formatFecha(),
+                "DateSave":  new Date(),
                 "SalesLocation": body.SalesLocation,
             };
         }

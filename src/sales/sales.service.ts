@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Get, HttpException, Injectable, Param } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
 import { formatFecha, generateBodySales } from 'src/function/generalFuntion';
@@ -14,6 +14,25 @@ export class SalesService {
         @InjectConnection() private readonly connection: Connection,
 
     ) { }
+
+    async GetSalesByWeek(dates: any ){
+        
+        let dateInit = new Date(`${dates.dateInit}T00:00:00.000Z`);
+        let dateEnd = new Date(`${dates.dateEnd}T23:59:59.999Z`);
+        
+        dateInit.setHours(0, 0, 0, 0); 
+        dateEnd.setHours(23, 59, 59, 999);
+        
+        let response = await this.SaveSale.find({
+            DateSave: {$gte: dateInit, $lte: dateEnd}
+        });
+
+        return response;
+    }
+
+    async getSalesById(idSale: String){
+        return  this.SaveSale.find({ IdVenta : idSale})
+    }
 
     async SaveSales(products: any, session: { validator?: boolean; session: any; }) {
         try {
