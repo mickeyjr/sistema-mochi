@@ -30,6 +30,22 @@ export class SalesService {
         return response;
     }
 
+    async GetSalesByWeekAndStores(dates: any ){
+        
+        let dateInit = new Date(`${dates.dateInit}T00:00:00.000Z`);
+        let dateEnd = new Date(`${dates.dateEnd}T23:59:59.999Z`);
+        
+        dateInit.setHours(0, 0, 0, 0); 
+        dateEnd.setHours(23, 59, 59, 999);
+        
+        let response = await this.SaveSale.find({
+            DateSave: {$gte: dateInit, $lte: dateEnd},
+            IdStore: dates.store
+        });
+
+        return response;
+    }
+
     async getSalesById(idSale: String){
         return  this.SaveSale.find({ IdVenta : idSale})
     }
@@ -156,7 +172,7 @@ export class SalesService {
         return saleId;
     }
 
-    async SubtractStockAndSaveSale(products: any) {
+    async SubtractStockAndSaveSale(products: any, IdStore: String) {
 
         const session = await this.connection.startSession();
         session.startTransaction();
@@ -192,7 +208,7 @@ export class SalesService {
                 }
 
                 await this.productoStockModel.updateOne(
-                    { idProduct: product.idProduct },
+                    { idProduct: product.idProduct, IdStore :IdStore },
                     { $set: { stock: newStock } },
                     { session }
                 );

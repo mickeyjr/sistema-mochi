@@ -16,7 +16,8 @@ export const ProductosSchema = new Schema({
   Fecha: String,
   Lugar: String,
   Imagen: String,
-  IdProduct:String
+  IdProduct:String,
+  FechaEndExits: String
 }, {
   collection: 'Productos' 
 });

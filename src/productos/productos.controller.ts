@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { CrearProductoDTO } from './DTO/CrearProducto';
+import { PatchProductoByStoresDTO } from './DTO/PatchProductByProduct';
 
 @Controller('productos')
 export class ProductosController {
@@ -21,13 +22,33 @@ export class ProductosController {
     return this.productosService.getProductsById(id);
   }
 
+    @Post('/store/byname')
+  async getProdcutsStoreByName(@Body() name: any){
+    return this.productosService.getProductsByName(name);
+  }
+
+  @Post('/store/byId')
+  async getProdcutsStoreById(@Body() id: any){
+    return this.productosService.getProductsById(id);
+  }
+
+
   @Post()
   @UsePipes(new ValidationPipe)
-  //Adicionar la info en la nueva tabla de stock
   async crearProducto(@Body() productoDTO: CrearProductoDTO) {
     return this.productosService.crearProducto(productoDTO);
   }
 
-  //1.- servicio para actualizar Stock o para actualizar datos de un producto.
+  @Patch('/store/update/products')
+  @UsePipes(new ValidationPipe)
+  async updateProductByStore(@Body() data: PatchProductoByStoresDTO){
+    this.productosService.updateProductByStore(data);
+  }
+
+  @Patch()
+    @UsePipes(new ValidationPipe)
+  async updateProduct(@Body() data: Object){
+    this.productosService.updateProduct(data);
+  }
 
 }

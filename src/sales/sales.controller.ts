@@ -12,6 +12,11 @@ export class SalesController {
     return await this.salesService.GetSalesByWeek(datesOfSearch);
    }
 
+   @Get('/getSales/:dateInit/:dateEnd/:store')
+    async GetSalesByWeekAndStore(@Param() datesOfSearch ){
+    return await this.salesService.GetSalesByWeekAndStores(datesOfSearch);
+   }
+
     @Get('getSaleById/:idSale')
     async getSalesById(@Param() params){
         return await this.salesService.getSalesById(params.idSale);
@@ -20,7 +25,7 @@ export class SalesController {
    @Post('/save')
    async PostSaveSales(@Body() product: any){
     const newProducts= await this.salesService.GetInfoProduct(product);
-    const exitsStock = await this.salesService.SubtractStockAndSaveSale(newProducts);
+    const exitsStock = await this.salesService.SubtractStockAndSaveSale(newProducts, product.IdStore);
     if(!exitsStock.validator )
         throw new HttpException({
             status: 400,
