@@ -1,10 +1,12 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class PatchProductoByStoresDTO {
-  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
   IdStore: string;
-
-  @IsOptional()
+  //solo probar que funcione
+  @IsString()
+  @IsNotEmpty()
   IdProduct: string;
 
   @IsNotEmpty()

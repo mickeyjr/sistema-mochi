@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProductosService } from './productos.service';
-import { CrearProductoDTO } from './DTO/CrearProducto';
-import { PatchProductoByStoresDTO } from './DTO/PatchProductByProduct';
+import { CrearProductoDTO } from './DTO/CrearProductoDTO';
+import { PatchProductoByStoresDTO } from './DTO/PatchProductByProductDTO';
+import { PatchProductcsDTO } from './DTO/PatchProductDTO';
 
 @Controller('productos')
 export class ProductosController {
@@ -45,9 +46,9 @@ export class ProductosController {
     this.productosService.updateProductByStore(data);
   }
 
-  @Patch()
+  @Patch("")
     @UsePipes(new ValidationPipe)
-  async updateProduct(@Body() data: Object){
+  async updateProduct(@Body() data: PatchProductcsDTO){
     this.productosService.updateProduct(data);
   }
 
