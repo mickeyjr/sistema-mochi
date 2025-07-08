@@ -19,8 +19,9 @@ export class ProductosService {
       let idProduct = generarIdPorFecha()
 
       let bodyStock = {
-        "idProduct": idProduct,
-        "stock": data.stock
+        "IdProduct": idProduct,
+        "Stock": data.stock,
+        "IdStore": data.IdStore
       }
 
       let stockProducts = new this.ProductsStockModel(bodyStock);
@@ -28,9 +29,9 @@ export class ProductosService {
 
       data.IdProduct = idProduct;
 
-      //adicionar el guardado en la coleccion de producto por tienda.
-
       const nuevoProducto = new this.productoModel(data);
+      const newProoductByStore = await new this.ProductByStoreModel(data);
+      await newProoductByStore.save()
       return await nuevoProducto.save();
 
     } catch (error) {
