@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CrearProductoDTO {
   @IsNotEmpty()
@@ -59,4 +59,19 @@ export class CrearProductoDTO {
 
   @IsString()
   Imagen: string;
+
+  @IsString()
+  FechaEndExits: String;
+
+  @IsString()
+  IdEmployee: String;
+
+  @IsNotEmpty()
+  @IsNumber()
+  RegistrationType: number;
+
+  @IsOptional()
+  @IsString()
+  IdStore: string;
+
 }

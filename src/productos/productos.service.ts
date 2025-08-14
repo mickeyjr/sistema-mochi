@@ -24,16 +24,17 @@ export class ProductosService {
         "IdStore": data.IdStore
       }
 
-      let stockProducts = new this.ProductsStockModel(bodyStock);
-      await stockProducts.save();
-
+      if(data.RegistrationType != 0){
+        let stockProducts = new this.ProductsStockModel(bodyStock);
+        await stockProducts.save();
+        const newProoductByStore = await new this.ProductByStoreModel(data);
+        return await newProoductByStore.save()
+      }else{
       data.IdProduct = idProduct;
 
       const nuevoProducto = new this.productoModel(data);
-      const newProoductByStore = await new this.ProductByStoreModel(data);
-      await newProoductByStore.save()
       return await nuevoProducto.save();
-
+      }
     } catch (error) {
       throw new HttpException({
         status: 500,
