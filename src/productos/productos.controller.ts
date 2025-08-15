@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { CrearProductoDTO } from './DTO/CrearProductoDTO';
+import { CrearProductoByStoreDTO } from './DTO/CrearProductoByStoreDTO';
 import { PatchProductoByStoresDTO } from './DTO/PatchProductByProductDTO';
 import { PatchProductcsDTO } from './DTO/PatchProductDTO';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('productos')
 export class ProductosController {
@@ -36,8 +38,24 @@ export class ProductosController {
 
   @Post()
   @UsePipes(new ValidationPipe)
-  async crearProducto(@Body() productoDTO: CrearProductoDTO) {
-    return this.productosService.crearProducto(productoDTO);
+  @UseInterceptors(FileInterceptor('Imagen'))
+  async crearProducto(
+    @Body() productoDTO: CrearProductoDTO, 
+    @UploadedFile() file: any) {
+    productoDTO.Imagen = file;
+    if(productoDTO.RegistrationType== 1){
+      return this.productosService.crearProductoByStore(productoDTO);
+    }else{
+      return this.productosService.crearProducto(productoDTO);
+    }
+  }
+
+  @Post('/bystore')
+  @UsePipes(new ValidationPipe)
+  @UseInterceptors(FileInterceptor('Imagen'))
+  async crearProductoByStore(@Body() productoDTO: CrearProductoByStoreDTO, ) {
+      return this.productosService.crearProductoByStore(productoDTO);
+
   }
 
   @Patch('/store/update/products')

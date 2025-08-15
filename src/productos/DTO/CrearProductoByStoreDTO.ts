@@ -1,6 +1,6 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class CrearProductoDTO {
+export class CrearProductoByStoreDTO {
   @IsNotEmpty()
   @IsString()
   CodigoChino: string;
@@ -73,5 +73,8 @@ export class CrearProductoDTO {
   @IsOptional()
   @IsString()
   IdStore: string;
+
+  @IsString()
+  IdProduct: String;
 
 }

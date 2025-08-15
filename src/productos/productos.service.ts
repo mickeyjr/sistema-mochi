@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { generarIdPorFecha } from 'src/function/generalFuntion';
+import { generarIdPorFecha, reduceImageBuffer } from 'src/function/generalFuntion';
 import { PatchProductoByStoresDTO } from './DTO/PatchProductByProductDTO';
 import { PatchProductcsDTO } from './DTO/PatchProductDTO';
 
@@ -18,23 +18,41 @@ export class ProductosService {
     try {
       let idProduct = generarIdPorFecha()
 
+      let image = await reduceImageBuffer(data.Imagen.buffer);
+      //aqui disminuir el buffer
+
+      data = {
+        ...data,
+        IdProduct: idProduct,
+        ImagenMimeType: data.Imagen.mimetype,
+        ImagenBuffer: image
+      }
+
+      const nuevoProducto = new this.productoModel(data);
+      return await nuevoProducto.save();
+
+    } catch (error) {
+      throw new HttpException({
+        status: 500,
+        error: 'Ocurrio algo en el sistema',
+        message: error,
+      }, 500);
+    }
+  }
+
+  async crearProductoByStore(data) {
+    try {
+      let idProduct = generarIdPorFecha()
       let bodyStock = {
         "IdProduct": idProduct,
         "Stock": data.stock,
         "IdStore": data.IdStore
       }
+      let stockProducts = new this.ProductsStockModel(bodyStock);
+      await stockProducts.save();
+      const newProoductByStore = await new this.ProductByStoreModel(data);
+      return await newProoductByStore.save()
 
-      if(data.RegistrationType != 0){
-        let stockProducts = new this.ProductsStockModel(bodyStock);
-        await stockProducts.save();
-        const newProoductByStore = await new this.ProductByStoreModel(data);
-        return await newProoductByStore.save()
-      }else{
-      data.IdProduct = idProduct;
-
-      const nuevoProducto = new this.productoModel(data);
-      return await nuevoProducto.save();
-      }
     } catch (error) {
       throw new HttpException({
         status: 500,
@@ -61,7 +79,25 @@ export class ProductosService {
 
   async getProductsByName(product: any) {
     try {
-      const res = await this.productoModel.find({ Nombre: { $regex: `^${product.name}`, $options: 'i' } }).exec();
+      const res = await this.productoModel.find(
+        { Nombre: 
+          { 
+            $regex: `^${product.name}`, 
+            $options: 'i' 
+          } },{        
+            Imagen:1,
+            ImagenBuffer: 1,
+            CodigoChino: 1,
+            CodigoBarras: 1,
+            Nombre: 1,
+            Descripcion: 1,
+            PrecioPublico: 1,
+            Contenido: 1,
+            EstadoDelProducto: 1,
+            InStock: 1,
+            IdProduct: 1,
+            ImagenMimeType: 1,
+      }).exec();
       return res;
     } catch (error) {
       throw new HttpException({

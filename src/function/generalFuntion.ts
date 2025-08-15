@@ -1,3 +1,5 @@
+const sharp = require('sharp');
+
 export function formatFecha(fecha = new Date()) {
     const pad = (n: number) => n.toString().padStart(2, '0');
 
@@ -67,4 +69,22 @@ export function generarIdPorFecha() {
   const fecha = new Date().toISOString().replace(/[-:TZ.]/g, '');
   const random = Math.floor(Math.random() * 10000); 
   return `${fecha}${random}`;
+}
+
+export async function reduceImageBuffer(
+  buffer: Buffer,
+  opciones?: { ancho?: number; calidad?: number }
+): Promise<Buffer> {
+  const { ancho = 300, calidad = 80 } = opciones || {};
+
+  try {
+    return await sharp(buffer)
+    .resize({ width: ancho }) 
+    .jpeg({ quality: calidad }) 
+    .toBuffer();
+  } catch (error) {
+    console.log(error);
+    return error
+  }
+
 }
