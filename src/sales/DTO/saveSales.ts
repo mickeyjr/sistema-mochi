@@ -1,30 +1,38 @@
-import { IsDate, IsNotEmpty, IsNumber, IsString } from "class-validator";
-import { Date } from "mongoose";
+import { IsArray, IsDate, IsNotEmpty, IsNumber, IsObject, IsString, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
+import { ProductDTO } from "./PorductoDTO";
 
 export class SaveSaleDTO{
+    @IsNumber()
+    @IsNotEmpty()
+    PaymentReceived: number;
+    
     @IsString()
     @IsNotEmpty()
-    Nombre: String;
-    
-    @IsNumber()
-    @IsNotEmpty()
-    Precio: Number;
+    PaymentType: String;
     
     @IsNotEmpty()
-    @IsNumber()
-    NumeroDePiezas: Number;
+    @IsString()
+    SalesLocation: String;
     
     @IsNotEmpty()
-    @IsNumber()
-    Ganancia: Number;
-
-    @IsDate()
-    @IsNotEmpty()
-    Fecha: Date;
+    @IsString()
+    IdStore: String;
 
     @IsString()
     @IsNotEmpty()
-    Lugar: String;
-    
-    Imagen: String;
+    IdCashRegister: String;
+
+    @IsString()
+    @IsNotEmpty()
+    IdEmployee: String;
+
+    @IsNumber()
+    @IsNotEmpty()
+    Total: number;
+
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ProductDTO)
+    products: ProductDTO[];
 }

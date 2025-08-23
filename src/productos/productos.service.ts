@@ -8,28 +8,28 @@ import { PatchProductcsDTO } from './DTO/PatchProductDTO';
 @Injectable()
 export class ProductosService {
   constructor(
-    @InjectModel('Producto') private readonly productoModel: Model<any>,
+    @InjectModel('Productos') private readonly productoModel: Model<any>,
     @InjectModel('ProductsStock') private readonly ProductsStockModel: Model<any>,
     @InjectModel('ProductByStore') private ProductByStoreModel: Model<any>,
+    @InjectModel('ImageProduct') private ImageProductModel: Model<any>
 
   ) { }
 
-  async crearProducto(data) {
+  async crearProducto(data: any) {
     try {
-      let idProduct = generarIdPorFecha()
 
       let image = await reduceImageBuffer(data.Imagen.buffer);
-      //aqui disminuir el buffer
+      const nuevoProducto = new this.productoModel(data);
+      await nuevoProducto.save();
 
-      data = {
-        ...data,
-        IdProduct: idProduct,
+      const dataImage = {
+        IdProduct: nuevoProducto._id,
         ImagenMimeType: data.Imagen.mimetype,
         ImagenBuffer: image
       }
 
-      const nuevoProducto = new this.productoModel(data);
-      return await nuevoProducto.save();
+      const newImage = new this.ImageProductModel(dataImage);
+      return await newImage.save();
 
     } catch (error) {
       throw new HttpException({
@@ -42,9 +42,8 @@ export class ProductosService {
 
   async crearProductoByStore(data) {
     try {
-      let idProduct = generarIdPorFecha()
       let bodyStock = {
-        "IdProduct": idProduct,
+        "IdProduct": data.IdProduct,
         "Stock": data.stock,
         "IdStore": data.IdStore
       }
@@ -75,30 +74,18 @@ export class ProductosService {
     }
   }
 
-  //adicionar seccion para adicion producto por tienda... Nah esto tendria que ser otro servicio y haga lo mas sencilo la alta. ##ProductByStore
-
   async getProductsByName(product: any) {
     try {
-      const res = await this.productoModel.find(
-        { Nombre: 
-          { 
-            $regex: `^${product.name}`, 
-            $options: 'i' 
-          } },{        
-            Imagen:1,
-            ImagenBuffer: 1,
-            CodigoChino: 1,
-            CodigoBarras: 1,
-            Nombre: 1,
-            Descripcion: 1,
-            PrecioPublico: 1,
-            Contenido: 1,
-            EstadoDelProducto: 1,
-            InStock: 1,
-            IdProduct: 1,
-            ImagenMimeType: 1,
-      }).exec();
-      return res;
+
+      const producto = await this.productoModel
+        .find({
+          Nombre: { $regex: `^${product.name}`, $options: 'i' }
+        })
+        .populate('imagenes')
+        .exec();
+
+      return producto;
+
     } catch (error) {
       throw new HttpException({
         status: 500,
@@ -110,15 +97,19 @@ export class ProductosService {
 
   async getProductsStoreByName(product: any) {
     try {
-      const res = await this.ProductByStoreModel.find(
-        {
-          IdStore: product.store,
-          Nombre: {
-            $regex: `^${product.name}`, $options: 'i'
-          }
-        }).exec();
 
-      return res;
+      const producto = await this.productoModel
+        .find({
+          Nombre: { $regex: `^${product.name}`, $options: 'i' }
+        })
+        .populate({
+          path: 'imagenes',
+          select: 'ImagenBuffer ImagenMimeType' 
+        })
+        .select('Nombre imagenes IdStore InStock EstadoDelProducto PrecioPublico Descripcion CodigoChino CodigoBarras')
+        .exec();
+
+      return producto;
     } catch (error) {
       throw new HttpException({
         status: 500,

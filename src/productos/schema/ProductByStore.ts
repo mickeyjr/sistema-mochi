@@ -1,7 +1,11 @@
-import { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 export const ProductByStoreSchema = new Schema({
-  IdProduct: String,
+  IdProduct: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Productos',
+    required: true
+  },
   IdStore: String,
   Fecha: String,
   Date: Date,

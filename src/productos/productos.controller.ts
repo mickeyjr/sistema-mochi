@@ -29,6 +29,11 @@ export class ProductosController {
   async getProdcutsStoreByName(@Body() name: any){
     return this.productosService.getProductsByName(name);
   }
+  
+    @Post('/sales/store/name')
+  async getProdcutsStoreByNameStore(@Body() name: any){
+    return this.productosService.getProductsStoreByName(name);
+  }
 
   @Post('/store/byId')
   async getProdcutsStoreById(@Body() id: any){
@@ -43,11 +48,7 @@ export class ProductosController {
     @Body() productoDTO: CrearProductoDTO, 
     @UploadedFile() file: any) {
     productoDTO.Imagen = file;
-    if(productoDTO.RegistrationType== 1){
-      return this.productosService.crearProductoByStore(productoDTO);
-    }else{
-      return this.productosService.crearProducto(productoDTO);
-    }
+    return this.productosService.crearProducto(productoDTO);
   }
 
   @Post('/bystore')
@@ -55,7 +56,6 @@ export class ProductosController {
   @UseInterceptors(FileInterceptor('Imagen'))
   async crearProductoByStore(@Body() productoDTO: CrearProductoByStoreDTO, ) {
       return this.productosService.crearProductoByStore(productoDTO);
-
   }
 
   @Patch('/store/update/products')

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpException, Param, Post, Query } from '@nestjs/common';
 import { SalesService } from './sales.service';
+import { SaveSaleDTO } from './DTO/saveSales';
 
 @Controller('sales')
 export class SalesController {
@@ -23,7 +24,7 @@ export class SalesController {
     }
 
    @Post('/save')
-   async PostSaveSales(@Body() product: any){
+   async PostSaveSales(@Body() product: SaveSaleDTO){
     const newProducts= await this.salesService.GetInfoProduct(product);
     const exitsStock = await this.salesService.SubtractStockAndSaveSale(newProducts, product.IdStore);
     if(!exitsStock.validator )

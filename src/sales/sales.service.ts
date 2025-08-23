@@ -2,6 +2,8 @@ import { Get, HttpException, Injectable, Param } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
 import { formatFecha, generateBodySales } from 'src/function/generalFuntion';
+import { Types } from "mongoose";
+
 
 @Injectable()
 export class SalesService {
@@ -15,44 +17,44 @@ export class SalesService {
 
     ) { }
 
-    async GetSalesByWeek(dates: any ){
-        
+    async GetSalesByWeek(dates: any) {
+
         let dateInit = new Date(`${dates.dateInit}T00:00:00.000Z`);
         let dateEnd = new Date(`${dates.dateEnd}T23:59:59.999Z`);
-        
-        dateInit.setHours(0, 0, 0, 0); 
+
+        dateInit.setHours(0, 0, 0, 0);
         dateEnd.setHours(23, 59, 59, 999);
-        
+
         let response = await this.SaveSale.find({
-            DateSave: {$gte: dateInit, $lte: dateEnd}
+            DateSave: { $gte: dateInit, $lte: dateEnd }
         });
 
         return response;
     }
 
-    async GetSalesByWeekAndStores(dates: any ){
-        
+    async GetSalesByWeekAndStores(dates: any) {
+
         let dateInit = new Date(`${dates.dateInit}T00:00:00.000Z`);
         let dateEnd = new Date(`${dates.dateEnd}T23:59:59.999Z`);
-        
-        dateInit.setHours(0, 0, 0, 0); 
+
+        dateInit.setHours(0, 0, 0, 0);
         dateEnd.setHours(23, 59, 59, 999);
-        
+
         let response = await this.SaveSale.find({
-            DateSave: {$gte: dateInit, $lte: dateEnd},
+            DateSave: { $gte: dateInit, $lte: dateEnd },
             IdStore: dates.store
         });
 
         return response;
     }
 
-    async getSalesById(idSale: String){
-        return  this.SaveSale.find({ IdVenta : idSale})
+    async getSalesById(idSale: String) {
+        return this.SaveSale.find({ IdVenta: idSale })
     }
 
     async SaveSales(products: any, session: { validator?: boolean; session: any; }) {
         try {
-    
+
             const res = await this.SaveSale.insertOne(products, session.session);
 
             await this.SaveSaleDetails(products, session.session);
@@ -60,12 +62,12 @@ export class SalesService {
             await session.session.commitTransaction();
             session.session.endSession();
 
-            return { 
-                response: "Venta registrada correctamente", 
+            return {
+                response: "Venta registrada correctamente",
                 status: 200,
-                detalle:{
+                data:   {
                     PaymentType: products.PaymentType,
-                    PaymentReceived:products.PaymentReceived,
+                    PaymentReceived: products.PaymentReceived,
                     CustomerChange: products.CustomerChange,
                     IVA: products.IVA,
                     Total: products.Total,
@@ -75,6 +77,7 @@ export class SalesService {
                     IdStore: products.IdStore,
                     IdCashRegister: products.IdCashRegister,
                     IdEmployee: products.IdEmployee,
+                    cambio: (products.PaymentReceived - products.Total),
                 }
             };
 
@@ -85,7 +88,7 @@ export class SalesService {
                 status: 500,
                 error: 'Existe un error en el servidor.',
                 message: error,
-              }, 500);
+            }, 500);
         }
 
     }
@@ -93,7 +96,7 @@ export class SalesService {
     async SaveSaleDetails(products: any, session: { validator?: boolean; session: any; }) {
         try {
             let newDetailsProducts = await generateBodySales(products, 0, 3, 0);
-            
+
             const res = await this.SaveSaleDetailsModel.insertOne(newDetailsProducts, session.session);
 
         } catch (error) {
@@ -103,14 +106,14 @@ export class SalesService {
                 status: 500,
                 error: 'Existe un error en el servidor.',
                 message: error,
-              }, 500);
+            }, 500);
         }
     }
 
-    async totalProducts(products :any){
+    async totalProducts(products: any) {
 
         let totalSales = 0;
-        let totalPrice = 0; 
+        let totalPrice = 0;
 
         products.forEach(product => {
             totalPrice = product.precio * product.numeroDePiezas
@@ -127,8 +130,8 @@ export class SalesService {
             let sale = await generateBodySales(products, idVenta, 1, 0);
 
             let totalSales = await this.totalProducts(products);
-            
-            if(totalSales > SalesInformation.PaymentReceived){
+
+            if (totalSales > SalesInformation.PaymentReceived) {
                 throw new HttpException({
                     status: 400,
                     error: 'No puedes adicionar un monton menor al coobro.',
@@ -137,7 +140,7 @@ export class SalesService {
 
             let saleSave = await generateBodySales(SalesInformation, idVenta, 2, totalSales);
             sale.forEach(sale => {
-                saleSave.products.push(sale);  
+                saleSave.products.push(sale);
             });
 
             return saleSave;
@@ -148,7 +151,7 @@ export class SalesService {
                 status: 500,
                 error: 'Existe un error en el servidor.',
                 message: error.message.errorResponse.errmsg,
-              }, 500);
+            }, 500);
 
         }
     }
@@ -179,36 +182,41 @@ export class SalesService {
 
         try {
 
-            const removeProductsFromStock: string[] = products.map((product: { idProduct: string }) => product.idProduct);
+
+            const removeProductsFromStock = products.map(
+                (product: { idProduct: string }) => new Types.ObjectId(product.idProduct)
+            );
 
             const numberOfPize = await this.productoStockModel.find(
-                { idProduct: { $in: removeProductsFromStock } },
-                { idProduct: 1, stock: 1 }
+                { IdProduct: { $in: removeProductsFromStock }, IdStore: IdStore },
+                { IdProduct: 1, Stock: 1,IdStore: 1 }
             ).session(session).lean();
 
             if (!numberOfPize || numberOfPize.length !== products.length) {
                 throw new HttpException({
                     status: 404,
                     error: 'No se pudieron obtener los productos',
-                  }, 404);
+                }, 404);
             }
 
             for (let i = 0; i < products.length; i++) {
                 const product = products[i];
-                const currentProduct = numberOfPize.find(p => p.idProduct === product.idProduct);
+                const currentProduct = numberOfPize.find(
+                  p => p.IdProduct.equals(new Types.ObjectId(product.idProduct))
+                );
                 if (!currentProduct) continue;
 
-                const newStock = currentProduct.stock - product.numeroDePiezas;
+                const newStock = currentProduct.Stock - product.numeroDePiezas;
 
                 if (newStock < 0) {
                     throw new HttpException({
                         status: 400,
                         error: 'Stock insuficiente para el producto',
-                      }, 400);
+                    }, 400);
                 }
 
                 await this.productoStockModel.updateOne(
-                    { idProduct: product.idProduct, IdStore :IdStore },
+                    { idProduct: product.idProduct, IdStore: IdStore },
                     { $set: { stock: newStock } },
                     { session }
                 );
@@ -223,7 +231,7 @@ export class SalesService {
                 status: 500,
                 error: 'Existe un error en el servidor.',
                 message: error,
-              }, 500);
+            }, 500);
 
         }
     }
@@ -232,17 +240,17 @@ export class SalesService {
         try {
 
             const productosConInfo = await Promise.all(sale.products.map(async (product) => {
-            
+
                 const info = await this.productoModel.findOne(
-                    { idProduct: product.idProduct },
-                    { PrecioPublico: 1, Ganancia: 1, _id: 0 }
+                    { _id: new Types.ObjectId(product.idProduct) },
+                    { PrecioPublico: 1, GananciaPorUnidad : 1, _id: 0 }
                 ).exec();
-                
+
                 return {
                     ...product,
                     fecha: formatFecha(),
                     precio: info?.PrecioPublico || 0,
-                    ganancia: info?._doc?.Ganancia || 0
+                    ganancia: info?._doc?.GananciaPorUnidad  || 0
                 };
 
             }));
@@ -254,9 +262,9 @@ export class SalesService {
             throw new HttpException({
                 status: 404,
                 error: 'Ocurrio algo en el sistema',
-                message:error,
+                message: error,
             }, 404);
-            
+
         }
     }
 
