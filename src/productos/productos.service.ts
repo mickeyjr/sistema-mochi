@@ -97,23 +97,23 @@ export class ProductosService {
 
   async getProductsStoreByName(product: any) {
     try {
-
-      const producto = await this.productoModel
+      const producto = await this.ProductByStoreModel
         .find({
-          Nombre: { $regex: `^${product.name}`, $options: 'i' }
+          Nombre: { $regex: `^${product.name}`, $options: 'i' },
+          IdStore : product.store 
         })
+        .select('IdProduct Nombre imagenes IdStore InStock EstadoDelProducto PrecioPublico Descripcion CodigoChino CodigoBarras')
         .populate({
           path: 'imagenes',
-          select: 'ImagenBuffer ImagenMimeType' 
+          select: 'ImagenBuffer ImagenMimeType'
         })
-        .select('Nombre imagenes IdStore InStock EstadoDelProducto PrecioPublico Descripcion CodigoChino CodigoBarras')
         .exec();
 
       return producto;
     } catch (error) {
       throw new HttpException({
         status: 500,
-        error: 'Ocurrio algo en el sistema',
+        error: 'Ocurrió algo en el sistema',
         message: error,
       }, 500);
     }

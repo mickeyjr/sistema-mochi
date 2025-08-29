@@ -19,5 +19,12 @@ export const ProductByStoreSchema = new Schema({
   CodigoBarras: String,
   Nombre: String
 }, {
-  collection: 'ProductByStore' 
+  collection: 'ProductByStore',
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true }, 
+});
+ProductByStoreSchema.virtual('imagenes', {
+  ref: 'ImageProduct',
+  localField: 'IdProduct',
+  foreignField: 'IdProduct',
 });

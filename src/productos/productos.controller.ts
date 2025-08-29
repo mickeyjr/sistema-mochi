@@ -31,8 +31,8 @@ export class ProductosController {
   }
   
     @Post('/sales/store/name')
-  async getProdcutsStoreByNameStore(@Body() name: any){
-    return this.productosService.getProductsStoreByName(name);
+  async getProdcutsStoreByNameStore(@Body() products: any){
+    return this.productosService.getProductsStoreByName(products);
   }
 
   @Post('/store/byId')

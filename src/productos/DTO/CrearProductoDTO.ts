@@ -73,5 +73,11 @@ export class CrearProductoDTO {
   @IsOptional()
   @IsString()
   IdStore: string;
+  
+  @IsString()
+  Serie: String;
+
+  @IsString()
+  Brand: String;
 
 }

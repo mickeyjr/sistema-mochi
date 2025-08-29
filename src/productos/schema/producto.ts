@@ -19,7 +19,9 @@ export const ProductosSchema = new Schema({
   IdProduct: String,
   FechaEndExits: String,
   ImagenMimeType: String,
-  ImagenBuffer: Buffer
+  ImagenBuffer: Buffer,
+  Serie: String,
+  Brand: String
 }, {
   collection: 'Productos',
   toObject: { virtuals: true },
@@ -27,7 +29,7 @@ export const ProductosSchema = new Schema({
 });
 
 ProductosSchema.virtual('imagenes', {
-  ref: 'ImageProduct',       
-  localField: '_id', 
+  ref: 'ImageProduct',
+  localField: '_id',
   foreignField: 'IdProduct',
 });
