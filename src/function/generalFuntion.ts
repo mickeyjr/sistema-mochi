@@ -75,7 +75,7 @@ export async function reduceImageBuffer(
   buffer: Buffer,
   opciones?: { ancho?: number; calidad?: number }
 ): Promise<Buffer> {
-  const { ancho = 300, calidad = 80 } = opciones || {};
+  const { ancho = 800, calidad = 85 } = opciones || {};
 
   try {
     return await sharp(buffer)

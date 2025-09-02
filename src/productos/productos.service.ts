@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { generarIdPorFecha, reduceImageBuffer } from 'src/function/generalFuntion';
 import { PatchProductoByStoresDTO } from './DTO/PatchProductByProductDTO';
 import { PatchProductcsDTO } from './DTO/PatchProductDTO';
@@ -100,7 +100,8 @@ export class ProductosService {
       const producto = await this.ProductByStoreModel
         .find({
           Nombre: { $regex: `^${product.name}`, $options: 'i' },
-          IdStore : product.store 
+          IdStore: product.store,
+          InStock: true
         })
         .select('IdProduct Nombre imagenes IdStore InStock EstadoDelProducto PrecioPublico Descripcion CodigoChino CodigoBarras')
         .populate({

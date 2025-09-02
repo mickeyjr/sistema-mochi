@@ -13,6 +13,7 @@ export class SalesService {
         @InjectModel('Producto') private productoModel: Model<any>,
         @InjectModel('ProductosStock') private productoStockModel: Model<any>,
         @InjectModel('SaveSaleDetails') private SaveSaleDetailsModel: Model<any>,
+        @InjectModel('ProductByStore') private ProductByStoreModel: Model<any>,
         @InjectConnection() private readonly connection: Connection,
 
     ) { }
@@ -65,7 +66,7 @@ export class SalesService {
             return {
                 response: "Venta registrada correctamente",
                 status: 200,
-                data:   {
+                data: {
                     PaymentType: products.PaymentType,
                     PaymentReceived: products.PaymentReceived,
                     CustomerChange: products.CustomerChange,
@@ -189,7 +190,7 @@ export class SalesService {
 
             const numberOfPize = await this.productoStockModel.find(
                 { IdProduct: { $in: removeProductsFromStock }, IdStore: IdStore },
-                { IdProduct: 1, Stock: 1,IdStore: 1 }
+                { IdProduct: 1, Stock: 1, IdStore: 1 }
             ).session(session).lean();
 
             if (!numberOfPize || numberOfPize.length !== products.length) {
@@ -202,7 +203,7 @@ export class SalesService {
             for (let i = 0; i < products.length; i++) {
                 const product = products[i];
                 const currentProduct = numberOfPize.find(
-                  p => p.IdProduct.equals(new Types.ObjectId(product.idProduct))
+                    p => p.IdProduct.equals(new Types.ObjectId(product.idProduct))
                 );
                 if (!currentProduct) continue;
 
@@ -215,11 +216,28 @@ export class SalesService {
                     }, 400);
                 }
 
-                await this.productoStockModel.updateOne(
-                    { idProduct: product.idProduct, IdStore: IdStore },
-                    { $set: { stock: newStock } },
-                    { session }
+                const uptadeProduct = await this.productoStockModel.updateOne(
+                    { IdProduct: new Types.ObjectId(product.idProduct), IdStore: IdStore },
+                    { $set: { Stock: newStock } },
+                    {
+                        session
+                    }
                 );
+                if (newStock == 0) {
+                    const updateProductByStores = await this.ProductByStoreModel.updateOne(
+                        {
+                            IdProduct: new Types.ObjectId(product.idProduct), IdStore: IdStore
+                        },
+                        {
+                            $set: { InStock: false, EstadoDelProducto: "Agotado" }
+                        }
+                        ,
+                        {
+                            session
+                        }
+                    )
+                }
+
             }
 
             return { validator: true, session };
@@ -243,14 +261,14 @@ export class SalesService {
 
                 const info = await this.productoModel.findOne(
                     { _id: new Types.ObjectId(product.idProduct) },
-                    { PrecioPublico: 1, GananciaPorUnidad : 1, _id: 0 }
+                    { PrecioPublico: 1, GananciaPorUnidad: 1, _id: 0 }
                 ).exec();
 
                 return {
                     ...product,
                     fecha: formatFecha(),
                     precio: info?.PrecioPublico || 0,
-                    ganancia: info?._doc?.GananciaPorUnidad  || 0
+                    ganancia: info?._doc?.GananciaPorUnidad || 0
                 };
 
             }));

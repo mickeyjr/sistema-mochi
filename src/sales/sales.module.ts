@@ -14,7 +14,8 @@ import { SaveSaleDetailsSchema } from './schema/detailSale';
       { name: 'SaveSale', schema: SaveSaleSchema },
       { name: 'Producto', schema: ProductosSchema },
       { name: 'ProductosStock', schema: ProductStockSchema },
-      { name: 'SaveSaleDetails', schema: SaveSaleDetailsSchema } 
+      { name: 'SaveSaleDetails', schema: SaveSaleDetailsSchema }, 
+      { name: 'ProductByStore', schema: ProductStockSchema } 
     ])
 
   ],
