@@ -77,4 +77,7 @@ export class CrearProductoByStoreDTO {
   @IsString()
   IdProduct: String;
 
+  @IsNumber()
+  TypeStock: number;
+
 }

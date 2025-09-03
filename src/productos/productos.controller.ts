@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ProductosService } from './productos.service';
 import { CrearProductoDTO } from './DTO/CrearProductoDTO';
 import { CrearProductoByStoreDTO } from './DTO/CrearProductoByStoreDTO';
@@ -13,6 +13,11 @@ export class ProductosController {
   @Get()
   async obtenerProductos() {
     return this.productosService.getProductos();
+  }
+
+  @Post('/exits')
+  async validationProdcutByStore(@Body() store : any){
+    return this.productosService.validationProdcutByStore(store);
   }
 
   @Post('/byname')
@@ -56,6 +61,23 @@ export class ProductosController {
   @UseInterceptors(FileInterceptor('Imagen'))
   async crearProductoByStore(@Body() productoDTO: CrearProductoByStoreDTO, ) {
       return this.productosService.crearProductoByStore(productoDTO);
+  }
+
+  @Put('/stock')
+  async updateProductsByStore(@Body() body : any){
+    this.productosService.updateProductsByStore(body)
+  }
+
+  @Put(':_id/image')
+  @UseInterceptors(FileInterceptor('Imagen'))
+  async updatePhotoByProduct(
+    @Body() body: any,
+    @UploadedFile() file: any,
+    @Param('_id') _id: any
+  ){
+    body.image = file;
+    body._id = _id;
+    this.productosService.updatePhotoByProduct(body)
   }
 
   @Patch('/store/update/products')

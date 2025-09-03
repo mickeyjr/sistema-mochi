@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { generarIdPorFecha, reduceImageBuffer } from 'src/function/generalFuntion';
 import { PatchProductoByStoresDTO } from './DTO/PatchProductByProductDTO';
 import { PatchProductcsDTO } from './DTO/PatchProductDTO';
@@ -40,7 +40,80 @@ export class ProductosService {
     }
   }
 
-  async crearProductoByStore(data) {
+  async validationProdcutByStore(data) {
+    try {
+      const body = {
+        InStock: false,
+        exists: false
+      }
+      let existRegisterByProduct = await this.ProductByStoreModel.findOne({
+        IdProduct: new Types.ObjectId(data.IdProduct),
+        IdStore: data.IdStore
+
+      });
+      if (existRegisterByProduct) {
+        body.InStock = existRegisterByProduct.InStock;
+        body.exists = true;
+        return body;
+      } else {
+        return body;
+      }
+    } catch (error) {
+      throw new HttpException({
+        status: 500,
+        error: 'Ocurrio algo en el sistema',
+        message: error,
+      }, 500);
+    }
+  }
+
+  async updateProductsByStore(data: any) {
+    if (data.TypeStock == 1) {
+      await this.ProductsStockModel.updateOne({
+        IdProduct: new Types.ObjectId(data.IdProduct),
+        IdStore: data.IdStore
+      }, {
+        $set: {
+          Stock: data.Stock
+        }
+      });
+      await this.ProductByStoreModel.updateOne({
+        IdProduct: new Types.ObjectId(data.IdProduct),
+        IdStore: data.IdStore
+      }, {
+        $set: {
+          InStock: data.Stock > 0 ? true : false,
+          EstadoDelProducto: data.Stock > 0 ? "En existencia" : 'Agotado',
+        }
+      });
+      return true;
+    } else if (data.TypeStock == 2) {
+      const ProductsStock = await this.ProductsStockModel.findOne({
+        IdProduct: new Types.ObjectId(data.IdProduct),
+        IdStore: data.IdStore
+      });
+      const newStock = ProductsStock.Stock + data.Stock
+      await this.ProductsStockModel.updateOne({
+        IdProduct: new Types.ObjectId(data.IdProduct),
+        IdStore: data.IdStore
+      }, {
+        $set: {
+          Stock: newStock
+        }
+      });
+      await this.ProductByStoreModel.updateOne({
+        IdProduct: new Types.ObjectId(data.IdProduct),
+        IdStore: data.IdStore
+      }, {
+        $set: {
+          InStock: newStock > 0 ? true : false,
+          EstadoDelProducto: newStock > 0 ? "En existencia" : 'Agotado',
+        }
+      });
+      return true;
+    }
+  }
+  async crearProductoByStore(data: any) {
     try {
       let bodyStock = {
         "IdProduct": data.IdProduct,
@@ -261,6 +334,30 @@ export class ProductosService {
 
       return res;
 
+    } catch (error) {
+      throw new HttpException({
+        status: 500,
+        error: 'Ocurrio algo en el sistema',
+        message: error,
+      }, 500);
+    }
+  }
+  async updatePhotoByProduct(body: any) {
+    try {
+      const response = await this.ImageProductModel.updateOne({
+        IdProduct: new Types.ObjectId(body._id)
+      },
+        {
+          $set: {
+            ImagenBuffer: body.image.buffer
+          }
+        }
+      );
+      let responseBody = { 
+        img : body.image.buffer,
+        response
+      };
+      return responseBody;
     } catch (error) {
       throw new HttpException({
         status: 500,
