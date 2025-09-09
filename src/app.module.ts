@@ -7,6 +7,8 @@ import { EmployesModule } from './employes/employes.module';
 import { SeriesModule } from './series/series.module';
 import { BrandModule } from './brand/brand.module';
 import { ConfigModule } from '@nestjs/config';
+import { ImagesUpdateModule } from './images-update/images-update.module';
+import { BannersServicesModule } from './banners-services/banners-services.module';
 
 
 @Module({
@@ -18,7 +20,7 @@ import { ConfigModule } from '@nestjs/config';
   StoresModule, 
   EmployesModule, 
   SeriesModule, 
-  BrandModule, 
+  BrandModule, ImagesUpdateModule, BannersServicesModule, 
   ],
 })
 export class AppModule {}

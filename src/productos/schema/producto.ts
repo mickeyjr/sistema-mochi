@@ -15,7 +15,6 @@ export const ProductosSchema = new Schema({
   GananciaPorUnidad: Number,
   Fecha: String,
   Lugar: String,
-  Imagen: Object,
   IdProduct: String,
   FechaEndExits: String,
   ImagenMimeType: String,

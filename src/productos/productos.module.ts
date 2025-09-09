@@ -6,6 +6,7 @@ import { ProductosSchema } from './schema/producto';
 import { ProductStockSchema } from './schema/productsStock';
 import { ProductByStoreSchema } from './schema/ProductByStore';
 import { ImageProductSchema } from './schema/ImageProduct';
+import { S3Service } from 'src/function/s3.service';
 
 @Module({
   imports: [
@@ -18,6 +19,9 @@ import { ImageProductSchema } from './schema/ImageProduct';
     ])
   ],
   controllers: [ProductosController],
-  providers: [ProductosService],
+  providers: [
+    ProductosService,
+    S3Service,
+  ],
 })
-export class ProductosModule {}
+export class ProductosModule { }

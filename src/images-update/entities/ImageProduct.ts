@@ -6,7 +6,12 @@ export const ImageProductSchema = new Schema({
     ref: 'Productos',
     required: true,
   },
-  UrlImage: String
+  ImagenMimeType: {
+    type: String,
+  },
+  ImagenBuffer: {
+    type: Buffer,
+  }
 }, {
   collection: 'ImageProduct',
   timestamps: true,

@@ -73,18 +73,22 @@ export function generarIdPorFecha() {
 
 export async function reduceImageBuffer(
   buffer: Buffer,
-  opciones?: { ancho?: number; calidad?: number }
+  opciones?: { ancho?: number; calidad?: number; esBanner?: boolean }
 ): Promise<Buffer> {
-  const { ancho = 800, calidad = 85 } = opciones || {};
+  let { ancho = 800, calidad = 100, esBanner = false } = opciones || {};
+
+  if (esBanner) {
+    ancho = 1920;
+    calidad = 90;
+  }
 
   try {
     return await sharp(buffer)
-    .resize({ width: ancho }) 
-    .jpeg({ quality: calidad }) 
-    .toBuffer();
+      .resize({ width: ancho, kernel: sharp.kernel.lanczos3 })
+      .jpeg({ quality: calidad })
+      .toBuffer();
   } catch (error) {
-    console.log(error);
-    return error
+    console.error(error);
+    throw error;
   }
-
 }

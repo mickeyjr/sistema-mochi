@@ -4,6 +4,8 @@ import mongoose, { Model, Types } from 'mongoose';
 import { generarIdPorFecha, reduceImageBuffer } from 'src/function/generalFuntion';
 import { PatchProductoByStoresDTO } from './DTO/PatchProductByProductDTO';
 import { PatchProductcsDTO } from './DTO/PatchProductDTO';
+import { S3Service } from 'src/function/s3.service';
+
 
 @Injectable()
 export class ProductosService {
@@ -11,7 +13,8 @@ export class ProductosService {
     @InjectModel('Productos') private readonly productoModel: Model<any>,
     @InjectModel('ProductsStock') private readonly ProductsStockModel: Model<any>,
     @InjectModel('ProductByStore') private ProductByStoreModel: Model<any>,
-    @InjectModel('ImageProduct') private ImageProductModel: Model<any>
+    @InjectModel('ImageProduct') private ImageProductModel: Model<any>,
+    private readonly S3Service: S3Service
 
   ) { }
 
@@ -19,13 +22,22 @@ export class ProductosService {
     try {
 
       let image = await reduceImageBuffer(data.Imagen.buffer);
+
       const nuevoProducto = new this.productoModel(data);
       await nuevoProducto.save();
 
+      const imageUrl = await this.S3Service.uploadImage({
+        buffer: image,
+        mimetype: data.Imagen.mimetype,
+        originalname: data.Imagen.originalname,
+        fieldname: data.Imagen.fieldname,
+        size: data.Imagen.size,
+        encoding: data.Imagen.encoding,
+      } as Express.Multer.File);
+
       const dataImage = {
         IdProduct: nuevoProducto._id,
-        ImagenMimeType: data.Imagen.mimetype,
-        ImagenBuffer: image
+        UrlImage : imageUrl
       }
 
       const newImage = new this.ImageProductModel(dataImage);
@@ -154,7 +166,7 @@ export class ProductosService {
         .find({
           Nombre: { $regex: `^${product.name}`, $options: 'i' }
         })
-        .populate('imagenes')
+        .populate({ path: 'imagenes', select: 'UrlImage' })
         .exec();
 
       return producto;
@@ -179,7 +191,7 @@ export class ProductosService {
         .select('IdProduct Nombre imagenes IdStore InStock EstadoDelProducto PrecioPublico Descripcion CodigoChino CodigoBarras')
         .populate({
           path: 'imagenes',
-          select: 'ImagenBuffer ImagenMimeType'
+          select: 'UrlImage'
         })
         .exec();
 
