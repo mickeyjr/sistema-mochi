@@ -5,27 +5,43 @@ import { InjectModel } from '@nestjs/mongoose';
 import { BannersService } from './entities/banners-service.entity';
 import { Model, Types } from 'mongoose';
 import { reduceImageBuffer } from 'src/function/generalFuntion';
+import { S3Service } from 'src/function/s3.service';
 
 
 @Injectable()
 export class BannersServicesService {
 
   constructor(
-    @InjectModel(BannersService.name) private BannersServiceSchema: Model<BannersService>
+    @InjectModel(BannersService.name) private BannersServiceSchema: Model<BannersService>,
+    private readonly S3Service: S3Service
   ) { }
 
   async create(createBannersServiceDto: CreateBannersServiceDto) {
-    let image: Buffer | null = null;
+    let image: string | null = null;
     if (createBannersServiceDto.File) {
-      image = await reduceImageBuffer(createBannersServiceDto.File.buffer, { esBanner: true });
+      image = await this.S3Service.uploadImage({
+        buffer: createBannersServiceDto.File.buffer,
+        mimetype: createBannersServiceDto.File.mimetype,
+        originalname: createBannersServiceDto.File.originalname,
+        fieldname: createBannersServiceDto.File.fieldname,
+        size: createBannersServiceDto.File.size,
+        encoding: createBannersServiceDto.File.encoding,
+      } as Express.Multer.File);
     }
-    let imageApp: Buffer | null = null;
+    let imageApp: string | null = null;
     if (createBannersServiceDto.FileApp) {
-      imageApp = await reduceImageBuffer(createBannersServiceDto.FileApp.buffer, { esBanner: true });
+      imageApp = await this.S3Service.uploadImage({
+        buffer: createBannersServiceDto.FileApp.buffer,
+        mimetype: createBannersServiceDto.FileApp.mimetype,
+        originalname: createBannersServiceDto.FileApp.originalname,
+        fieldname: createBannersServiceDto.FileApp.fieldname,
+        size: createBannersServiceDto.FileApp.size,
+        encoding: createBannersServiceDto.FileApp.encoding,
+      } as Express.Multer.File);
     }
     const newBody = {
-      Imagen: image || null,
-      ImageApp: imageApp || null,
+      ImagenUrl: image || null,
+      ImageUrlApp: imageApp || null,
       Link: createBannersServiceDto.Link,
       position: createBannersServiceDto.position,
       Identifier: createBannersServiceDto.Identifier,
@@ -65,14 +81,25 @@ export class BannersServicesService {
       }
 
       if (updateBannersServiceDto.File) {
-        updatePayload.Imagen = updateBannersServiceDto.File?.mimetype;
-        updatePayload.Imagen = await reduceImageBuffer(updateBannersServiceDto.File.buffer, { esBanner: true });
-
+        updatePayload.ImagenUrl = await this.S3Service.uploadImage({
+          buffer: updateBannersServiceDto.File.buffer,
+          mimetype: updateBannersServiceDto.File.mimetype,
+          originalname: updateBannersServiceDto.File.originalname,
+          fieldname: updateBannersServiceDto.File.fieldname,
+          size: updateBannersServiceDto.File.size,
+          encoding: updateBannersServiceDto.File.encoding,
+        } as Express.Multer.File);
       }
 
       if (updateBannersServiceDto.FileApp) {
-        updatePayload.Imagen = updateBannersServiceDto.FileApp?.mimetype;
-        updatePayload.ImageApp = await reduceImageBuffer(updateBannersServiceDto.FileApp.buffer, { esBanner: true });
+        updatePayload.ImageUrlApp = await this.S3Service.uploadImage({
+          buffer: updateBannersServiceDto.FileApp.buffer,
+          mimetype: updateBannersServiceDto.FileApp.mimetype,
+          originalname: updateBannersServiceDto.FileApp.originalname,
+          fieldname: updateBannersServiceDto.FileApp.fieldname,
+          size: updateBannersServiceDto.FileApp.size,
+          encoding: updateBannersServiceDto.FileApp.encoding,
+        } as Express.Multer.File);
       }
 
       let response = await this.BannersServiceSchema.updateOne({ _id: new Types.ObjectId(id) }, { $set: updatePayload });
