@@ -77,7 +77,7 @@ export class ProductosController {
   ){
     body.image = file;
     body._id = _id;
-    this.productosService.updatePhotoByProduct(body)
+    return this.productosService.updatePhotoByProduct(body)
   }
 
   @Patch('/store/update/products')

@@ -356,17 +356,26 @@ export class ProductosService {
   }
   async updatePhotoByProduct(body: any) {
     try {
+     // let image = await reduceImageBuffer(body.Imagen.buffer);
+      const imageUrl = await this.S3Service.uploadImage({
+        buffer: body.image.buffer,
+        mimetype: body.image.mimetype,
+        originalname: body.image.originalname,
+        fieldname: body.image.fieldname,
+        size: body.image.size,
+        encoding: body.image.encoding,
+      } as Express.Multer.File);
       const response = await this.ImageProductModel.updateOne({
         IdProduct: new Types.ObjectId(body._id)
       },
         {
           $set: {
-            ImagenBuffer: body.image.buffer
+            UrlImage: imageUrl
           }
         }
       );
       let responseBody = { 
-        img : body.image.buffer,
+        img : imageUrl,
         response
       };
       return responseBody;
